@@ -1,0 +1,48 @@
+services:
+  whatsapp-flask:
+    build: .
+    container_name: whatsapp_flask_app
+    ports:
+      - "5065:5065"
+    environment:
+      - WAHA_URL=http://waha:3000
+      - WAHA_API_KEY=your-api-key-here
+      - SESSION_NAME=default
+      - FLASK_ENV=production
+      - PORT=5065
+    networks:
+      - whatsapp_network
+    restart: unless-stopped
+    depends_on:
+      - waha
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5065"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_API_KEY=your-api-key-here
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WHATSAPP_RESTART_ALL_SESSIONS=True
+      - WAHA_LOG_LEVEL=info
+      - WAHA_DASHBOARD_ENABLED=true
+      - WAHA_DASHBOARD_USERNAME=admin
+      - WAHA_DASHBOARD_PASSWORD=admin123
+    volumes:
+      - waha_sessions:/app/.sessions
+    networks:
+      - whatsapp_network
+
+networks:
+  whatsapp_network:
+    driver: bridge
+
+volumes:
+  waha_sessions:

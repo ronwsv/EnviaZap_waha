@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectar WhatsApp - Automação</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: none;
+        }
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.1) !important;
+            backdrop-filter: blur(10px);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .status-badge {
+            font-size: 1.1em;
+            padding: 8px 16px;
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fab fa-whatsapp me-2"></i>
+                WhatsApp Automação
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Dashboard</a>
+                <a class="nav-link active" href="/connect">Conectar</a>
+                <a class="nav-link" href="/send">Enviar Mensagem</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header text-center py-4">
+                        <h2><i class="fas fa-qrcode me-2"></i>Conectar WhatsApp</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Status Atual -->
+                        <div class="text-center mb-4">
+                            {% if status.status == 'WORKING' or status.connected %}
+                                <span class="badge bg-success status-badge">
+                                    <i class="fas fa-check-circle me-2"></i>Conectado
+                                </span>
+                                <div class="alert alert-success mt-3">
+                                    <h5><i class="fas fa-thumbs-up me-2"></i>WhatsApp Conectado com Sucesso!</h5>
+                                    <p><strong>Nome:</strong> {{ status.profileName or 'N/A' }}</p>
+                                    <p><strong>Número:</strong> {{ status.number or 'N/A' }}</p>
+                                    <a href="/send" class="btn btn-success">
+                                        <i class="fas fa-paper-plane me-2"></i>Enviar Mensagem
+                                    </a>
+                                </div>
+                            {% elif status.status == 'SCAN_QR_CODE' or status.status == 'STARTING' %}
+                                <span class="badge bg-warning status-badge pulse">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Conectando
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger status-badge">
+                                    <i class="fas fa-times-circle me-2"></i>Desconectado
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- QR Code Section -->
+                        {% if status.status != 'WORKING' and not status.connected %}
+                        <div id="qrSection">
+                            {% if qr.success %}
+                                <div class="qr-container">
+                                    <h5>Escaneie o QR Code com seu WhatsApp</h5>
+                                    <img src="{{ qr.qr_code }}" alt="QR Code WhatsApp" class="qr-code" id="qrImage">
+                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            Tentativa: <span id="qrCount">{{ qr.count }}</span> | 
+                                            Última atualização: <span id="lastUpdate">{{ status.last_check or 'Agora' }}</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-mobile-alt me-2"></i>Como conectar:</h6>
+                                    <ol>
+                                        <li>Abra o <strong>WhatsApp Business</strong> no seu celular</li>
+                                        <li>Vá em <strong>Configurações → Dispositivos conectados</strong></li>
+                                        <li>Toque em <strong>"Conectar um dispositivo"</strong></li>
+                                        <li><strong>Escaneie</strong> o QR Code acima</li>
+                                    </ol>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning text-center">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i>QR Code não disponível</h5>
+                                    <p>{{ qr.message }}</p>
+                                    <button class="btn btn-warning" onclick="restartInstance()">
+                                        <i class="fas fa-redo me-2"></i>Reiniciar Conexão
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Ações -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary w-100" onclick="refreshQR()">
+                                    <i class="fas fa-sync-alt me-2"></i>Atualizar QR Code
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-warning w-100" onclick="restartInstance()">
+                                    <i class="fas fa-redo me-2"></i>Reiniciar Instância
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Log de Status -->
+                        <div class="mt-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-list me-2"></i>Log de Conexão</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="connectionLog" style="max-height: 200px; overflow-y: auto;">
+                                        <div class="log-entry">
+                                            <small class="text-muted">{{ status.last_check or 'Agora' }}</small> - 
+                                            Status: {{ status.status }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let checkInterval;
+
+        // Iniciar verificação automática
+        function startStatusCheck() {
+            checkInterval = setInterval(checkStatus, 5000); // A cada 5 segundos
+        }
+
+        // Parar verificação automática
+        function stopStatusCheck() {
+            if (checkInterval) {
+                clearInterval(checkInterval);
+            }
+        }
+
+        // Verificar status da conexão
+        function checkStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    addToLog(`Status: ${data.status}`);
+                    
+                    if (data.status === 'WORKING' || data.connected) {
+                        stopStatusCheck();
+                        location.reload(); // Recarregar para mostrar sucesso
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao verificar status:', error);
+                    addToLog('Erro ao verificar status');
+                });
+        }
+
+        // Atualizar QR Code
+        function refreshQR() {
+            const btn = event.target;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Atualizando...';
+            btn.disabled = true;
+
+            fetch('/api/qr')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('qrImage').src = data.qr_code;
+                        document.getElementById('qrCount').textContent = data.count;
+                        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                        addToLog(`QR Code atualizado (tentativa ${data.count})`);
+                    } else {
+                        addToLog(`Erro ao atualizar QR: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar QR:', error);
+                    addToLog('Erro ao atualizar QR Code');
+                })
+                .finally(() => {
+                    btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Atualizar QR Code';
+                    btn.disabled = false;
+                });
+        }
+
+        // Reiniciar instância
+        function restartInstance() {
+            const btn = event.target;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Reiniciando...';
+            btn.disabled = true;
+
+            fetch('/api/restart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addToLog(data.message);
+                if (data.success) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao reiniciar:', error);
+                addToLog('Erro ao reiniciar instância');
+            })
+            .finally(() => {
+                btn.innerHTML = '<i class="fas fa-redo me-2"></i>Reiniciar Instância';
+                btn.disabled = false;
+            });
+        }
+
+        // Adicionar entrada ao log
+        function addToLog(message) {
+            const log = document.getElementById('connectionLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<small class="text-muted">${new Date().toLocaleTimeString()}</small> - ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Iniciar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if status.status != 'WORKING' and not status.connected %}
+                startStatusCheck();
+                addToLog('Iniciando verificação de status automática');
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

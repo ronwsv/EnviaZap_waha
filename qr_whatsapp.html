@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp QR Code - Evolution API</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #25d366;
+            margin-bottom: 20px;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .terminal {
+            background-color: #000;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            text-align: left;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .instructions {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #1eb856;
+        }
+    </style>
+    <script>
+        function checkLogs() {
+            alert('Verifique o terminal onde você executou "docker-compose logs api" para ver os QR Codes sendo gerados!');
+        }
+        
+        function openTerminal() {
+            alert('Execute este comando no PowerShell:\n\ndocker-compose logs api\n\nE procure pelos QR Codes no formato ASCII!');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 WhatsApp QR Code - Evolution API</h1>
+        
+        <div class="status info">
+            📡 A Evolution API está funcionando e gerando QR Codes!
+        </div>
+        
+        <div class="terminal">
+> A Evolution API está gerando QR Codes no formato ASCII no terminal.
+> Para visualizar o QR Code, execute o comando:
+> 
+> docker-compose logs api
+> 
+> E procure por linhas como:
+> ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+> █ ▄▄▄▄▄ █▄▀▀█▄█▀▀▀██ ▀█▀▄ ▄▀▄ ▄▄  ▀▀▀█▀█▀▄ ▄ ▀ ▄ ██ ▄▄▄▄▄ █
+> █ █   █ █   ▀  ▄█▄▀▀███▄▀▀ █▀██▀ ▄▀█  ▄▀▄▄▀ ▀█▀▄ ██ █   █ █
+> ...
+        </div>
+        
+        <div class="instructions">
+            <h3>📱 Como escanear o QR Code:</h3>
+            <ol>
+                <li><strong>Abra o PowerShell</strong> na pasta da Evolution API</li>
+                <li><strong>Execute:</strong> <code>docker-compose logs api</code></li>
+                <li><strong>Procure pelo QR Code</strong> no formato ASCII (quadrados e símbolos)</li>
+                <li><strong>No seu celular:</strong> Abra o WhatsApp</li>
+                <li><strong>Vá em:</strong> ⋮ (três pontos) → Dispositivos conectados</li>
+                <li><strong>Toque em:</strong> Conectar um dispositivo</li>
+                <li><strong>Escaneie</strong> o QR Code ASCII mostrado no terminal</li>
+            </ol>
+        </div>
+        
+        <button class="btn" onclick="checkLogs()">🔍 Ver Instruções dos Logs</button>
+        <button class="btn" onclick="openTerminal()">💻 Comando do Terminal</button>
+        <button class="btn" onclick="location.reload()">🔄 Atualizar Página</button>
+        
+        <div style="margin-top: 30px; font-size: 14px; color: #666;">
+            <p><strong>💡 Dica:</strong> O QR Code é renovado automaticamente a cada ~45 segundos.</p>
+            <p><strong>✅ Status:</strong> Evolution API rodando em http://localhost:8080</p>
+        </div>
+    </div>
+</body>
+</html>
+    
